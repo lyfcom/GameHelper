@@ -24,12 +24,11 @@ jobs:
 
     - name: Run PyInstaller
       run: |
-        pyinstaller --noconfirm --log-level=INFO `
+        pyinstaller --noconfirm --log-level=INFO `    
           --onefile `
           --windowed `
-          --name="P2P Screen Sharing" `  
-          --add-data="config.json;." `
-          main.py
+          --name="P2P Screen Sharing" `
+          main.py  
     
     # Inno Setup的Source路径需要调整为PyInstaller的输出
     # PyInstaller的--onefile模式输出在dist/main.exe
