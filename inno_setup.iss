@@ -5,11 +5,12 @@
 #define MyAppPublisher "jo4fn"
 #define MyAppURL "https://github.com/lyfcom/GameHelper"
 #define MyAppExeName "main.exe"
+#define MyAppId "32F339B8-9993-470E-A1D8-687834C15A42"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.  
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
-AppId={{GENERATE-A-NEW-GUID}}
+AppId={#MyAppId}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
@@ -27,8 +28,8 @@ SolidCompression=yes
 WizardStyle=modern
 
 [Languages]
-Name: "chinese"; MessagesFile: "Chinese.isl"
-Name: "english"; MessagesFile: "compiler:Default.isl"
+Name: "chinese"; MessagesFile: "compiler:Chinese.isl"
+Name: "english"; MessagesFile: "Default.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
