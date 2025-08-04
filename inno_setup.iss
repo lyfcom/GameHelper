@@ -2,8 +2,8 @@
 
 #define MyAppName "P2P Screen Sharing"
 #define MyAppVersion "1.0.0"
-#define MyAppPublisher "Your Name"
-#define MyAppURL "https://github.com/your-repo"
+#define MyAppPublisher "jo4fn"          
+#define MyAppURL "https://github.com/lyfcom/GameHelper"        
 #define MyAppExeName "main.exe"
 
 [Setup]
@@ -27,21 +27,19 @@ SolidCompression=yes
 WizardStyle=modern
 
 [Languages]
-Name: "chinese"; MessagesFile: "Chinese.isl"
+Name: "chinese"; MessagesFile: "Chinese.isl"  
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
-Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked  
 
 [Files]
-Source: "dist\main\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\main\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion  
 ; 复制dist/main目录下的所有其他文件和子目录
-Source: "dist\main\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-; 确保config.json被包含
-Source: "config.json"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\main\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs                   
 
 [Icons]
-Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
+Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"  
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Run]
