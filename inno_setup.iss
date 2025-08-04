@@ -2,12 +2,12 @@
 
 #define MyAppName "P2P Screen Sharing"
 #define MyAppVersion "1.0.0"
-#define MyAppPublisher "jo4fn"          
-#define MyAppURL "https://github.com/lyfcom/GameHelper"        
+#define MyAppPublisher "jo4fn"
+#define MyAppURL "https://github.com/lyfcom/GameHelper"
 #define MyAppExeName "main.exe"
 
 [Setup]
-; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
+; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.  
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{GENERATE-A-NEW-GUID}}
 AppName={#MyAppName}
