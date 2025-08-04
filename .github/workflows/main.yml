@@ -24,7 +24,7 @@ jobs:
 
     - name: Run PyInstaller
       run: |
-        pyinstaller --noconfirm --log-level=INFO `    
+        pyinstaller --noconfirm --log-level=INFO `
           --onefile `
           --windowed `
           --name="P2P Screen Sharing" `
@@ -52,25 +52,3 @@ jobs:
       with:
         name: P2P-Screen-Sharing-Installer
         path: Output/P2P-Screen-Sharing-Setup.exe
-        
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
-        draft: false
-        prerelease: false
-
-    - name: Upload Release Asset
-      id: upload-release-asset 
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }} 
-        asset_path: ./Output/P2P-Screen-Sharing-Setup.exe
-        asset_name: P2P-Screen-Sharing-Setup-${{ github.ref_name }}.exe
-        asset_content_type: application/octet-stream
