@@ -16,18 +16,18 @@ jobs:
       with:
         python-version: '3.12'
 
-    - name: Install dependencies
+    - name: Install dependencies  
       run: |
         python -m pip install --upgrade pip
-        pip install pyinstaller
-        pip install -r requirements.txt
+        pip install pyinstaller  
+        pip install -r requirements.txt  
 
     - name: Run PyInstaller
       run: |
         pyinstaller --noconfirm --log-level=INFO `
           --onefile `
           --windowed `
-          --name="P2P Screen Sharing" `
+          --name="P2P Screen Sharing" `  
           --add-data="config.json;." `
           main.py
     
@@ -36,14 +36,12 @@ jobs:
     - name: Adjust Inno Setup Source Path
       run: |
         # Inno Setup脚本期望文件在 dist\main 目录中
-        New-Item -ItemType Directory -Force -Path "dist/main"
+        New-Item -ItemType Directory -Force -Path "dist/main"    
         Move-Item -Path "dist/P2P Screen Sharing.exe" -Destination "dist/main/main.exe"
       shell: pwsh
 
     - name: Install Inno Setup
-      uses: crazy-max/ghaction-setup-inno@v2
-      with:
-        version: "6.2.2"
+      run: choco install innosetup --no-progress --yes  
 
     - name: Compile Installer with Inno Setup
       run: |
