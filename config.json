@@ -1,0 +1,16 @@
+{
+    "network": {
+        "default_port": 17585,
+        "fps": 8,
+        "jpeg_quality": 75
+    },
+    "viewer": {
+        "default_width": 480,
+        "default_height": 270,
+        "zoom_scale": 2.0
+    },
+    "ui": {
+        "show_fps": true,
+        "show_connection_status": true
+    }
+}
