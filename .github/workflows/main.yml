@@ -35,13 +35,6 @@ jobs:
         --nofollow-import-to=unittest `
         --include-package=mss `
         --include-package=PIL `
-        --include-package=queue `
-        --include-package=threading `
-        --include-package=socket `
-        --include-package=json `
-        --include-package=struct `
-        --include-package=time `
-        --include-package=io `
         --include-module=control_panel `
         --include-module=network_comms `
         --include-module=screen_capture `
@@ -49,23 +42,31 @@ jobs:
         --include-module=screen_capture_ultra `
         --include-module=settings_dialog `
         --include-module=viewer_window `
-        --output-filename="P2P Screen Sharing.exe" `
+        --output-filename="main.exe" `
         --output-dir=dist `
-        --report=compilation-report.xml `
         main.py
 
-    # 调整Nuitka输出结构以适配Inno Setup
-    # Adjust Nuitka output structure for Inno Setup compatibility
+    # 简化Nuitka输出结构调整，仅保留核心逻辑
     - name: Prepare Nuitka Output for Inno Setup
       run: |
-        # 创建 Inno Setup 期望的 dist/main 目录
-        New-Item -ItemType Directory -Force -Path "dist/main"
-        # 移动 Nuitka 编译的可执行文件和依赖
-        Move-Item -Path "dist/main.dist/*" -Destination "dist/main/"
-        # 重命名主程序以匹配 Inno Setup 脚本的预期
-        Rename-Item -Path "dist/main/P2P Screen Sharing.exe" -NewName "main.exe"
-        # 清理临时目录
-        Remove-Item -Path "dist/main.dist" -Recurse -Force -ErrorAction SilentlyContinue      
+        # 查找Nuitka输出目录 (*.dist)
+        $nuitkaDir = Get-ChildItem -Path "dist" -Directory | Where-Object { $_.Name -like "*.dist" } | Select-Object -First 1
+        if (-not $nuitkaDir) {
+            Write-Host "❌ 未找到Nuitka输出目录 (*.dist)"
+            exit 1
+        }
+        # 创建目标目录
+        New-Item -ItemType Directory -Force -Path "dist/main" | Out-Null
+        # 移动所有内容到dist/main
+        Move-Item -Path "$($nuitkaDir.FullName)\*" -Destination "dist/main/"
+        # 检查main.exe
+        if (-not (Test-Path "dist/main/main.exe")) {
+            Write-Host "❌ main.exe 不存在"
+            exit 1
+        }
+        # 清理
+        Remove-Item -Path $nuitkaDir.FullName -Recurse -Force -ErrorAction SilentlyContinue
+        Write-Host "✅ Nuitka输出已准备好"
 
     - name: Install Inno Setup
       run: choco install innosetup --no-progress --yes
