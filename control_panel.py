@@ -12,7 +12,7 @@ class ControlPanel(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("P2P 屏幕共享控制面板")
-        self.geometry("400x500")
+        self.geometry("400x600")
 
         # --- Load Configuration ---
         self.config = self.load_config()
@@ -132,12 +132,43 @@ class ControlPanel(tk.Tk):
         self.disconnect_button = ttk.Button(self, text="断开选中连接", command=self.disconnect_peer)
         self.disconnect_button.pack(pady=5)
         
+        # 性能监控区域
+        performance_frame = ttk.LabelFrame(self, text="性能监控", padding=(10, 5))
+        performance_frame.pack(padx=10, pady=5, fill="x")
+        
+        # 性能信息显示
+        perf_info_frame = ttk.Frame(performance_frame)
+        perf_info_frame.pack(fill="x")
+        
+        ttk.Label(perf_info_frame, text="实际FPS:").pack(side="left", padx=5)
+        self.fps_label = ttk.Label(perf_info_frame, text="0.0", foreground="blue", font=("Arial", 10, "bold"))
+        self.fps_label.pack(side="left", padx=5)
+        
+        ttk.Label(perf_info_frame, text="档案:").pack(side="left", padx=10)
+        self.profile_label = ttk.Label(perf_info_frame, text="balanced", foreground="green")
+        self.profile_label.pack(side="left", padx=5)
+        
+        ttk.Label(perf_info_frame, text="效率:").pack(side="left", padx=10)
+        self.efficiency_label = ttk.Label(perf_info_frame, text="0%", foreground="orange")
+        self.efficiency_label.pack(side="left", padx=5)
+        
+        # 性能控制按钮
+        perf_control_frame = ttk.Frame(performance_frame)
+        perf_control_frame.pack(fill="x", pady=5)
+        
+        ttk.Button(perf_control_frame, text="高质量", command=lambda: self.switch_profile("quality")).pack(side="left", padx=2)
+        ttk.Button(perf_control_frame, text="平衡", command=lambda: self.switch_profile("balanced")).pack(side="left", padx=2)
+        ttk.Button(perf_control_frame, text="高性能", command=lambda: self.switch_profile("performance")).pack(side="left", padx=2)
+
         # 底部按钮区域
         bottom_frame = ttk.Frame(self)
         bottom_frame.pack(pady=5)
         
         ttk.Button(bottom_frame, text="设置", command=self.show_settings).pack(side="left", padx=5)
         ttk.Button(bottom_frame, text="保存配置", command=self.save_config).pack(side="left", padx=5)
+        
+        # 启动性能监控
+        self._start_performance_monitoring()
         
     def connect_to_peer(self):
         peer_ip = self.peer_ip_entry.get().strip()
@@ -245,15 +276,21 @@ class ControlPanel(tk.Tk):
         """显示设置对话框"""
         new_config = show_settings_dialog(self, self.config)
         if new_config:
+            # 保存新配置
             self.config = new_config
-            # 应用新配置到网络管理器
-            self.network_manager.config = new_config
+            
+            # 立即保存到文件
+            self.save_config(auto=True)
+            
+            # 通知网络管理器重新加载配置
+            if self.network_manager.reload_config():
+                print("[UI] 网络管理器配置已同步")
+            
             # 更新端口输入框默认值
             self.peer_port_entry.delete(0, tk.END)
             self.peer_port_entry.insert(0, str(self.config['network']['default_port']))
-            # 立即保存到文件
-            self.save_config(auto=True)
-            messagebox.showinfo("成功", "设置已保存并应用！其中部分网络参数将在下一次连接/重启后完全生效。")
+            
+            messagebox.showinfo("成功", "设置已保存并应用！性能档案和网络参数已立即生效。")
     
     def save_config(self, auto=False):
         """保存当前配置到文件
@@ -268,6 +305,61 @@ class ControlPanel(tk.Tk):
                 messagebox.showinfo("成功", "配置已保存到 config.json")
         except Exception as e:
             messagebox.showerror("错误", f"保存配置失败: {e}")
+
+    def _start_performance_monitoring(self):
+        """启动性能监控"""
+        def update_performance():
+            try:
+                perf_info = self.network_manager.get_performance_info()
+                
+                # 更新FPS显示
+                self.fps_label.config(text=f"{perf_info['current_fps']:.1f}")
+                
+                # 更新档案显示
+                profile_names = {
+                    "quality": "高质量",
+                    "balanced": "平衡", 
+                    "performance": "高性能"
+                }
+                profile_display = profile_names.get(perf_info['profile'], perf_info['profile'])
+                self.profile_label.config(text=profile_display)
+                
+                # 更新效率显示（根据效率设置颜色）
+                efficiency = perf_info['efficiency']
+                efficiency_text = f"{efficiency:.0%}"
+                if efficiency >= 0.8:
+                    color = "green"
+                elif efficiency >= 0.6:
+                    color = "orange"
+                else:
+                    color = "red"
+                self.efficiency_label.config(text=efficiency_text, foreground=color)
+                
+            except Exception as e:
+                print(f"性能监控更新失败: {e}")
+            
+            # 每2秒更新一次
+            self.after(2000, update_performance)
+        
+        # 启动监控
+        update_performance()
+    
+    def switch_profile(self, profile):
+        """切换性能档案"""
+        if self.network_manager.switch_performance_profile(profile):
+            # 重新加载配置到本地
+            self.config = self.load_config()
+            
+            # 显示成功消息
+            profile_names = {
+                "quality": "高质量模式",
+                "balanced": "平衡模式", 
+                "performance": "高性能模式"
+            }
+            messagebox.showinfo("成功", f"已切换到 {profile_names.get(profile, profile)}")
+            print(f"[UI] 性能档案切换完成: {profile}")
+        else:
+            messagebox.showerror("错误", "性能档案切换失败")
 
     def on_closing(self):
         if messagebox.askokcancel("退出", "确定要关闭所有连接并退出程序吗？"):

@@ -10,7 +10,7 @@ class SettingsDialog(tk.Toplevel):
         self.result = None
         
         self.title("设置")
-        self.geometry("400x400")
+        self.geometry("400x500")
         self.resizable(False, False)
         self.transient(parent)
         self.grab_set()
@@ -57,6 +57,45 @@ class SettingsDialog(tk.Toplevel):
         self.zoom_var = tk.StringVar(value=str(self.config['viewer']['zoom_scale']))
         ttk.Entry(viewer_frame, textvariable=self.zoom_var, width=10).grid(row=2, column=1, padx=5, pady=2)
         
+        # 性能设置
+        performance_frame = ttk.LabelFrame(self, text="性能设置", padding=(10, 5))
+        performance_frame.pack(padx=10, pady=5, fill="x")
+        
+        ttk.Label(performance_frame, text="性能档案:").grid(row=0, column=0, sticky="w", padx=5, pady=2)
+        self.profile_var = tk.StringVar(value=self.config.get('performance', {}).get('profile', 'balanced'))
+        profile_combo = ttk.Combobox(performance_frame, textvariable=self.profile_var, 
+                                   values=['quality', 'balanced', 'performance'],
+                                   state='readonly', width=15)
+        profile_combo.grid(row=0, column=1, padx=5, pady=2)
+        
+        # 性能档案说明
+        profile_descriptions = {
+            'quality': '高质量模式 - 最佳画质，适合演示',
+            'balanced': '平衡模式 - 画质与性能平衡',
+            'performance': '高性能模式 - 最高帧率，适合游戏'
+        }
+        
+        self.profile_desc_var = tk.StringVar(value=profile_descriptions.get(self.profile_var.get(), ''))
+        ttk.Label(performance_frame, textvariable=self.profile_desc_var, 
+                 font=("Arial", 8), foreground="gray").grid(row=1, column=0, columnspan=2, 
+                                                           sticky="w", padx=5, pady=2)
+        
+        def on_profile_change(*args):
+            self.profile_desc_var.set(profile_descriptions.get(self.profile_var.get(), ''))
+            # 根据性能档案自动调整参数
+            profile = self.profile_var.get()
+            if profile == 'quality':
+                self.fps_var.set("8")
+                self.quality_var.set("75")
+            elif profile == 'balanced':
+                self.fps_var.set("15") 
+                self.quality_var.set("50")
+            elif profile == 'performance':
+                self.fps_var.set("20")
+                self.quality_var.set("30")
+        
+        self.profile_var.trace('w', on_profile_change)
+
         # UI设置
         ui_frame = ttk.LabelFrame(self, text="界面设置", padding=(10, 5))
         ui_frame.pack(padx=10, pady=5, fill="x")
@@ -92,6 +131,9 @@ class SettingsDialog(tk.Toplevel):
                 "ui": {
                     "show_fps": self.show_fps_var.get(),
                     "show_connection_status": self.show_status_var.get()
+                },
+                "performance": {
+                    "profile": self.profile_var.get()
                 }
             }
             
@@ -128,13 +170,14 @@ class SettingsDialog(tk.Toplevel):
         """恢复默认设置"""
         if messagebox.askyesno("确认", "确定要恢复所有设置为默认值吗？"):
             self.port_var.set("17585")
-            self.fps_var.set("8")
-            self.quality_var.set("75")
+            self.fps_var.set("15")  # 使用优化后的默认值
+            self.quality_var.set("50")  # 使用优化后的默认值
             self.width_var.set("480")
             self.height_var.set("270")
             self.zoom_var.set("2.0")
             self.show_fps_var.set(True)
             self.show_status_var.set(True)
+            self.profile_var.set("balanced")  # 新增性能档案默认值
 
 def show_settings_dialog(parent, config):
     """显示设置对话框并返回新配置，如果用户取消则返回None"""
