@@ -19,28 +19,53 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pyinstaller
+        pip install nuitka
         pip install -r requirements.txt
 
-    - name: Run PyInstaller
-      # 移除 --onefile 选项以创建非单一文件打包，提高启动速度
-      # Remove --onefile option to create a non-single-file package for faster startup
+    - name: Compile with Nuitka
+      # 使用 Nuitka 编译为独立可执行文件，具有更好的性能和启动速度
+      # Use Nuitka to compile to standalone executable with better performance and startup speed
       run: |
-        pyinstaller --noconfirm --log-level=INFO `
-        --windowed `
-        --name="P2P Screen Sharing" `
+        nuitka --standalone `
+        --assume-yes-for-downloads `
+        --windows-disable-console `
+        --enable-plugin=tk-inter `
+        --enable-plugin=numpy `
+        --nofollow-import-to=pytest `
+        --nofollow-import-to=unittest `
+        --include-package=mss `
+        --include-package=PIL `
+        --include-package=queue `
+        --include-package=threading `
+        --include-package=socket `
+        --include-package=json `
+        --include-package=struct `
+        --include-package=time `
+        --include-package=io `
+        --include-module=control_panel `
+        --include-module=network_comms `
+        --include-module=screen_capture `
+        --include-module=screen_capture_optimized `
+        --include-module=screen_capture_ultra `
+        --include-module=settings_dialog `
+        --include-module=viewer_window `
+        --output-filename="P2P Screen Sharing.exe" `
+        --output-dir=dist `
+        --report=compilation-report.xml `
         main.py
 
-    # Inno Setup的Source路径需要调整为PyInstaller的输出
-    # PyInstaller的非单一文件模式输出在 dist/P2P Screen Sharing 目录
-    - name: Adjust Inno Setup Source Path
+    # 调整Nuitka输出结构以适配Inno Setup
+    # Adjust Nuitka output structure for Inno Setup compatibility
+    - name: Prepare Nuitka Output for Inno Setup
       run: |
         # 创建 Inno Setup 期望的 dist/main 目录
         New-Item -ItemType Directory -Force -Path "dist/main"
-        # 移动所有打包文件和依赖到 dist/main 目录
-        Move-Item -Path "dist/P2P Screen Sharing/*" -Destination "dist/main/"
-        # 重命名主程序 exe 文件以匹配 Inno Setup 脚本的预期
-        Rename-Item -Path "dist/main/P2P Screen Sharing.exe" -NewName "main.exe"      
+        # 移动 Nuitka 编译的可执行文件和依赖
+        Move-Item -Path "dist/main.dist/*" -Destination "dist/main/"
+        # 重命名主程序以匹配 Inno Setup 脚本的预期
+        Rename-Item -Path "dist/main/P2P Screen Sharing.exe" -NewName "main.exe"
+        # 清理临时目录
+        Remove-Item -Path "dist/main.dist" -Recurse -Force -ErrorAction SilentlyContinue      
 
     - name: Install Inno Setup
       run: choco install innosetup --no-progress --yes

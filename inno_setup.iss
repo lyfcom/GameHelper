@@ -1,7 +1,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "P2P Screen Sharing"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "2.0.0"
 #define MyAppPublisher "jo4fn"
 #define MyAppURL "https://github.com/lyfcom/GameHelper"
 #define MyAppExeName "main.exe"
@@ -35,7 +35,8 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 Source: "dist\main\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-; 复制dist/main目录下的所有其他文件和子目录
+; 复制Nuitka编译输出的dist/main目录下的所有文件和依赖库
+; Copy all files and dependencies from Nuitka-compiled dist/main directory
 Source: "dist\main\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
