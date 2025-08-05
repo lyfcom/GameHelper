@@ -1,0 +1,11 @@
+#忽略__pycache__文件夹
+__pycache__/
+
+#忽略dist文件夹
+dist/
+
+#忽略build文件夹
+build/
+
+#忽略*.pyc文件
+*.pyc
