@@ -95,6 +95,8 @@ class NetworkManager:
                 client_socket, addr = self.server_socket.accept()
                 # 优化：设置TCP_NODELAY减少延迟
                 client_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+                # 优化：设置发送缓冲区大小
+                client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 131072)  # 128KB发送缓冲
                 print(f"[+] 新的连接来自: {addr}")
                 self.clients[addr] = client_socket
             except OSError:
@@ -118,10 +120,16 @@ class NetworkManager:
                 
                 if img_bytes:
                     try:
+                        # 如果队列满了，先清空旧帧，只保留最新的
+                        if self.image_queue.full():
+                            try:
+                                while True:
+                                    self.image_queue.get_nowait()
+                            except Empty:
+                                pass
                         self.image_queue.put_nowait(img_bytes)
-                    except:
-                        # 队列满了，跳过这一帧以防止堆积
-                        pass
+                    except Exception as e:
+                        print(f"队列操作错误: {e}")
                         
             except Exception as e:
                 print(f"截图时发生错误: {e}")
@@ -136,8 +144,16 @@ class NetworkManager:
         """专门负责发送数据的线程"""
         while self.running:
             try:
-                # 从队列获取图像数据，超时0.1秒
-                img_bytes = self.image_queue.get(timeout=0.1)
+                # 如果队列中有多帧，仅取最后一帧，丢弃旧帧
+                img_bytes = None
+                while True:
+                    try:
+                        img_bytes = self.image_queue.get_nowait()
+                    except Empty:
+                        break
+                if img_bytes is None:
+                    time.sleep(0.01)
+                    continue
                 
                 # 更新FPS统计
                 self._update_fps_stats()
@@ -225,6 +241,8 @@ class NetworkManager:
             # 优化：设置连接超时和TCP_NODELAY
             peer_socket.settimeout(10)
             peer_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+            # 优化：设置接收缓冲区大小（连接前设置）
+            peer_socket.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 131072)  # 128KB接收缓冲
             peer_socket.connect((peer_host, peer_port))
             peer_socket.settimeout(None)
             
@@ -245,8 +263,7 @@ class NetworkManager:
         payload_size = struct.calcsize(">Q")
         data_buffer = b""
         
-        # 优化：设置接收缓冲区大小
-        peer_socket.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 65536)
+        # 接收缓冲区已在连接时设置，这里不需要重复设置
 
         while self.running:
             try:

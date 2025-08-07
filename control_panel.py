@@ -226,12 +226,21 @@ class ControlPanel(tk.Tk):
         self.after(0, self._destroy_viewer_window, peer_addr)
         
     def on_data_received(self, peer_addr, image_data):
+        """接收到网络数据时，将最新帧放入队列，如果队列已满则丢弃旧帧"""
         if peer_addr in self.data_queues:
-            self.data_queues[peer_addr].put(image_data)
+            q = self.data_queues[peer_addr]
+            try:
+                # 如果队列已满，先移除旧帧，始终保持最新
+                if q.full():
+                    _ = q.get_nowait()
+                q.put_nowait(image_data)
+            except Exception:
+                pass
             
     def _create_viewer_window(self, peer_addr):
         if peer_addr not in self.viewer_windows:
-            self.data_queues[peer_addr] = Queue()
+            # 仅缓存最新帧，避免延迟累积
+            self.data_queues[peer_addr] = Queue(maxsize=1)
             
             viewer_config = self.config['viewer']
             ui_config = self.config.get('ui', {})
@@ -266,8 +275,15 @@ class ControlPanel(tk.Tk):
     def _update_viewer_loop(self, viewer, queue):
         while viewer.winfo_exists():
             try:
-                data = queue.get(timeout=1)
-                viewer.update_image(data)
+                # 尝试一次性获取队列中最后一帧，丢弃过时帧
+                data = None
+                while True:
+                    try:
+                        data = queue.get_nowait()
+                    except Exception:
+                        break
+                if data:
+                    viewer.update_image(data)
             except Exception:
                 pass
         print(f"Update loop for {viewer.peer_addr} has ended.")

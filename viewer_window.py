@@ -129,16 +129,19 @@ class ViewerWindow(tk.Toplevel):
             self.last_image = None
     
     def _update_fps(self):
-        """更新FPS显示"""
+        """更新FPS显示 - 优化版本减少time.time()调用"""
         self.frame_count += 1
-        current_time = time.time()
-        elapsed = current_time - self.fps_start_time
         
-        if elapsed >= 1.0:  # 每秒更新一次FPS显示
-            self.current_fps = self.frame_count / elapsed
-            self.fps_label.config(text=f"FPS: {self.current_fps:.1f}")
-            self.frame_count = 0
-            self.fps_start_time = current_time
+        # 每30帧才检查一次时间，减少系统调用开销
+        if self.frame_count % 30 == 0:
+            current_time = time.time()
+            elapsed = current_time - self.fps_start_time
+            
+            if elapsed >= 1.0:  # 每秒更新一次FPS显示
+                self.current_fps = self.frame_count / elapsed
+                self.fps_label.config(text=f"FPS: {self.current_fps:.1f}")
+                self.frame_count = 0
+                self.fps_start_time = current_time
     
     def close_window(self):
         """关闭窗口。"""

@@ -1,8 +1,8 @@
 {
     "network": {
         "default_port": 17585,
-        "fps": 15,
-        "jpeg_quality": 50
+        "fps": 20,
+        "jpeg_quality": 30
     },
     "viewer": {
         "default_width": 480,
@@ -14,6 +14,6 @@
         "show_connection_status": true
     },
     "performance": {
-        "profile": "balanced"
+        "profile": "performance"
     }
 }
